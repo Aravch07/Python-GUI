@@ -11,6 +11,15 @@ USERS_FILE = "users.json"
 LEAVES_FILE = "leaves.json"
 
 
+def apply_base_style(window):
+    window.configure(bg="#f4f6f8")
+    style = ttk.Style(window)
+    style.theme_use("clam")
+    style.configure("TLabel", background="#f4f6f8", font=("Arial", 10))
+    style.configure("Header.TLabel", font=("Arial", 16, "bold"))
+    style.configure("TButton", font=("Arial", 10))
+
+
 def load_data(file):
     try:
         with open(file, "r") as f:
@@ -46,6 +55,7 @@ def count_leaves_in_month(username, month, year):
                 count += 1
     return count
 
+
 def logout(current_window):
     current_window.destroy()
     login_window()
@@ -73,24 +83,29 @@ def login_window():
 
     root = tk.Tk()
     root.title("Login - Leave Management System")
-    root.geometry("350x300")
+    root.geometry("380x300")
     root.resizable(False, False)
+    apply_base_style(root)
 
-    tk.Label(root, text="LOGIN", font=("Arial", 16, "bold")).pack(pady=10)
+    container = ttk.Frame(root, padding=20)
+    container.pack(fill="both", expand=True)
 
-    tk.Label(root, text="Username").pack()
-    username_entry = tk.Entry(root)
-    username_entry.pack()
+    ttk.Label(container, text="LOGIN", style="Header.TLabel").pack(pady=(0, 15))
 
-    tk.Label(root, text="Password").pack(pady=5)
-    password_entry = tk.Entry(root, show="*")
-    password_entry.pack()
+    ttk.Label(container, text="Username").pack(anchor="w")
+    username_entry = ttk.Entry(container)
+    username_entry.pack(fill="x")
 
-    tk.Button(root, text="Login", command=login, bg="lightgreen").pack(pady=15)
-    tk.Button(root, text="Register", command=open_register, bg="lightblue").pack()
+    ttk.Label(container, text="Password").pack(anchor="w", pady=(10, 0))
+    password_entry = ttk.Entry(container, show="*")
+    password_entry.pack(fill="x")
+
+    ttk.Button(container, text="Login", command=login).pack(pady=(18, 8), ipadx=30)
+    ttk.Button(container, text="Register", command=open_register).pack(ipadx=24)
 
     root.mainloop()
-    
+
+
 def register_window():
     def register_user():
         username = username_entry.get()
@@ -124,34 +139,39 @@ def register_window():
 
     reg = tk.Toplevel()
     reg.title("Register New Employee")
-    reg.geometry("350x300")
+    reg.geometry("380x320")
     reg.resizable(False, False)
+    apply_base_style(reg)
 
-    tk.Label(reg, text="REGISTER", font=("Arial", 16, "bold")).pack(pady=10)
+    container = ttk.Frame(reg, padding=20)
+    container.pack(fill="both", expand=True)
 
-    tk.Label(reg, text="Username").pack()
-    username_entry = tk.Entry(reg)
-    username_entry.pack()
+    ttk.Label(container, text="REGISTER", style="Header.TLabel").pack(pady=(0, 15))
 
-    tk.Label(reg, text="Password").pack(pady=5)
-    password_entry = tk.Entry(reg, show="*")
-    password_entry.pack()
+    ttk.Label(container, text="Username").pack(anchor="w")
+    username_entry = ttk.Entry(container)
+    username_entry.pack(fill="x")
 
-    tk.Label(reg, text="Confirm Password").pack(pady=5)
-    confirm_entry = tk.Entry(reg, show="*")
-    confirm_entry.pack()
+    ttk.Label(container, text="Password").pack(anchor="w", pady=(10, 0))
+    password_entry = ttk.Entry(container, show="*")
+    password_entry.pack(fill="x")
 
-    tk.Button(reg, text="Register", command=register_user, bg="lightgreen").pack(pady=15)
+    ttk.Label(container, text="Confirm Password").pack(anchor="w", pady=(10, 0))
+    confirm_entry = ttk.Entry(container, show="*")
+    confirm_entry.pack(fill="x")
+
+    ttk.Button(container, text="Register", command=register_user).pack(pady=18, ipadx=26)
 
 
 def employee_window(username):
     emp = tk.Tk()
     emp.title(f"Employee Portal - {username}")
-    emp.geometry("500x500")
+    emp.geometry("540x560")
     emp.resizable(False, False)
+    apply_base_style(emp)
 
     def show_employee_graph():
-        leaves = load_data(LEAVES_FILE)   # ✅ FIX
+        leaves = load_data(LEAVES_FILE)
 
         dates = []
         for l in leaves:
@@ -173,7 +193,6 @@ def employee_window(username):
         plt.tight_layout()
         plt.show()
 
-
     def calculate_days():
         start_date = start_cal.get_date()
         end_date = end_cal.get_date()
@@ -187,14 +206,6 @@ def employee_window(username):
         days = working_days_between(start_date, end_date)
         days_label.config(text=f"Working Days: {days}")
         return days
-    
-    tk.Button(
-        emp,
-        text="Logout",
-        command=lambda: logout(emp),
-        bg="lightcoral"
-    ).pack(pady=10)
-
 
     def apply_leave():
         leaves = load_data(LEAVES_FILE)
@@ -203,6 +214,13 @@ def employee_window(username):
         end_date = end_cal.get_date()
         reason = reason_entry.get()
         leave_type = leave_type_var.get()
+
+        if start_date > end_date:
+            messagebox.showerror(
+                "Error", "End date cannot be before start date!"
+            )
+            return
+
         days = working_days_between(start_date, end_date)
 
         if not reason:
@@ -274,73 +292,91 @@ def employee_window(username):
 
         tree.pack(fill="both", expand=True)
 
-    tk.Label(
-        emp, text="Apply for Leave", font=("Arial", 14, "bold")
-    ).pack(pady=10)
+    header_frame = ttk.Frame(emp, padding=(20, 14, 20, 6))
+    header_frame.pack(fill="x")
 
-    tk.Label(emp, text="Leave Type").pack()
+    ttk.Label(
+        header_frame,
+        text=f"Employee Portal - {username}",
+        style="Header.TLabel"
+    ).pack(side="left")
+
+    ttk.Button(
+        header_frame,
+        text="Logout",
+        command=lambda: logout(emp)
+    ).pack(side="right")
+
+    content = ttk.Frame(emp, padding=(20, 8, 20, 20))
+    content.pack(fill="both", expand=True)
+
+    ttk.Label(
+        content, text="Apply for Leave", style="Header.TLabel"
+    ).pack(pady=(0, 12))
+
+    ttk.Label(content, text="Leave Type").pack(anchor="w")
     leave_type_var = tk.StringVar(value="Casual")
 
     ttk.Combobox(
-        emp,
+        content,
         textvariable=leave_type_var,
         values=["Casual", "Sick", "Paid", "Emergency"],
-    ).pack()
+        state="readonly"
+    ).pack(fill="x")
 
-    tk.Label(emp, text="Start Date").pack()
+    ttk.Label(content, text="Start Date").pack(anchor="w", pady=(10, 0))
     start_cal = DateEntry(
-        emp,
+        content,
         width=20,
         background="darkblue",
         foreground="white",
         date_pattern="yyyy-mm-dd",
     )
-    start_cal.pack(pady=3)
+    start_cal.pack(fill="x", pady=3)
 
-    tk.Label(emp, text="End Date").pack()
+    ttk.Label(content, text="End Date").pack(anchor="w", pady=(8, 0))
     end_cal = DateEntry(
-        emp,
+        content,
         width=20,
         background="darkblue",
         foreground="white",
         date_pattern="yyyy-mm-dd",
     )
-    end_cal.pack(pady=3)
+    end_cal.pack(fill="x", pady=3)
 
-    tk.Button(
-        emp, text="Calculate Days", command=calculate_days
-    ).pack(pady=5)
+    ttk.Button(
+        content, text="Calculate Days", command=calculate_days
+    ).pack(pady=7)
 
-    days_label = tk.Label(
-        emp, text="Working Days: 0", font=("Arial", 10, "bold")
+    days_label = ttk.Label(
+        content, text="Working Days: 0", font=("Arial", 10, "bold")
     )
     days_label.pack()
 
-    tk.Label(emp, text="Reason").pack()
-    reason_entry = tk.Entry(emp, width=50)
-    reason_entry.pack(pady=5)
+    ttk.Label(content, text="Reason").pack(anchor="w", pady=(10, 0))
+    reason_entry = ttk.Entry(content, width=50)
+    reason_entry.pack(fill="x", pady=5)
 
-    tk.Button(
-        emp,
+    ttk.Button(
+        content,
         text="Apply Leave",
         command=apply_leave,
-        bg="lightgreen",
     ).pack(pady=10)
 
-    tk.Button(
-        emp,
+    ttk.Button(
+        content,
         text="View My Applications",
         command=view_leaves,
-        bg="lightblue",
     ).pack(pady=5)
-    tk.Button(
-        emp,
+
+    ttk.Button(
+        content,
         text="View My Leave Graph",
         command=show_employee_graph,
-        bg="khaki"
     ).pack(pady=5)
 
     emp.mainloop()
+
 
 def admin_window():
     admin = tk.Tk()
